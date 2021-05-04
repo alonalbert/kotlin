@@ -54,7 +54,6 @@ fun compile(
     propertyLazyInitialization: Boolean,
     forceAllJs: Boolean = false,
     legacyPropertyAccess: Boolean = false,
-    irPerModulePrefix: String? = null,
 ): CompilerResult {
     val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, moduleToName) =
         loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory, forceAllJs)
@@ -113,7 +112,6 @@ fun compile(
             multiModule = multiModule,
             relativeRequirePath = relativeRequirePath,
             moduleToName = moduleToName,
-            irPerModulePrefix = irPerModulePrefix,
         )
         return transformer.generateModule(allModules)
     } else {
@@ -126,7 +124,6 @@ fun compile(
             multiModule = multiModule,
             relativeRequirePath = relativeRequirePath,
             moduleToName = moduleToName,
-            irPerModulePrefix = irPerModulePrefix,
         )
         return transformer.generateModule(allModules)
     }
