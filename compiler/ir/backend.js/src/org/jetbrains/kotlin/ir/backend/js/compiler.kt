@@ -54,6 +54,7 @@ fun compile(
     propertyLazyInitialization: Boolean,
     forceAllJs: Boolean = false,
     legacyPropertyAccess: Boolean = false,
+    baseClassIntoMetadata: Boolean = false,
 ): CompilerResult {
     val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, moduleToName) =
         loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, irFactory, forceAllJs)
@@ -75,7 +76,8 @@ fun compile(
         es6mode = es6mode,
         dceRuntimeDiagnostic = dceRuntimeDiagnostic,
         propertyLazyInitialization = propertyLazyInitialization,
-        legacyPropertyAccess = legacyPropertyAccess
+        legacyPropertyAccess = legacyPropertyAccess,
+        baseClassIntoMetadata = baseClassIntoMetadata
     )
 
     // Load declarations referenced during `context` initialization
