@@ -25,7 +25,8 @@ import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.*
 
-internal class FirKeywordCompletionContributor(basicContext: FirBasicCompletionContext) : FirCompletionContributorBase(basicContext) {
+internal class FirKeywordCompletionContributor(basicContext: FirBasicCompletionContext) :
+    FirCompletionContributorBase<FirRawPositionCompletionContext>(basicContext) {
     private val keywordCompletion = KeywordCompletion(object : KeywordCompletion.LanguageVersionSettingProvider {
         override fun getLanguageVersionSetting(element: PsiElement) = element.languageVersionSettings
         override fun getLanguageVersionSetting(module: Module) = module.languageVersionSettings
@@ -33,9 +34,7 @@ internal class FirKeywordCompletionContributor(basicContext: FirBasicCompletionC
 
     private val resolveDependentCompletionKeywordHandlers = ResolveDependentCompletionKeywordHandlerProvider(basicContext)
 
-    fun KtAnalysisSession.completeKeywords(
-        positionContext: FirRawPositionCompletionContext
-    ) {
+    override fun KtAnalysisSession.complete(positionContext: FirRawPositionCompletionContext) {
         val expression = when (positionContext) {
             is FirNameReferenceRawPositionContext -> {
                 val reference = positionContext.reference
@@ -48,6 +47,7 @@ internal class FirKeywordCompletionContributor(basicContext: FirBasicCompletionC
         }
         completeWithResolve(expression ?: positionContext.position, expression)
     }
+
 
     fun KtAnalysisSession.completeWithResolve(position: PsiElement, expression: KtExpression?) {
         complete(position) { lookupElement, keyword ->

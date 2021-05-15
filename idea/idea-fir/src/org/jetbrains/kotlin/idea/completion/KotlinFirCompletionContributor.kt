@@ -11,16 +11,20 @@ import com.intellij.patterns.PsiJavaPatterns
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.completion.checkers.CompletionVisibilityChecker
+import org.jetbrains.kotlin.idea.completion.context.*
 import org.jetbrains.kotlin.idea.completion.context.FirBasicCompletionContext
-import org.jetbrains.kotlin.idea.completion.context.FirNameReferenceRawPositionContext
+import org.jetbrains.kotlin.idea.completion.context.FirExpressionNameReferenceRawPositionContext
 import org.jetbrains.kotlin.idea.completion.context.FirPositionCompletionContextDetector
+import org.jetbrains.kotlin.idea.completion.context.FirTypeNameReferenceRawPositionContext
 import org.jetbrains.kotlin.idea.completion.context.FirUnknownRawPositionContext
 import org.jetbrains.kotlin.idea.completion.contributors.FirCallableCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirClassifierCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirKeywordCompletionContributor
+import org.jetbrains.kotlin.idea.completion.contributors.complete
 import org.jetbrains.kotlin.idea.completion.weighers.Weighers
 import org.jetbrains.kotlin.idea.fir.low.level.api.IndexHelper
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.originalKtFile
+import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
 import org.jetbrains.kotlin.lexer.KtTokens
 
 class KotlinFirCompletionContributor : CompletionContributor() {
@@ -41,39 +45,35 @@ private object KotlinFirCompletionProvider : CompletionProvider<CompletionParame
 
         val basicContext = FirBasicCompletionContext.createFromParameters(parameters, resultSet) ?: return
         recordOriginalFile(basicContext)
+
         val positionContext = FirPositionCompletionContextDetector.detect(basicContext)
 
-        val keywordContributor = FirKeywordCompletionContributor(basicContext)
-
         FirPositionCompletionContextDetector.analyseInContext(basicContext, positionContext) {
-            with(keywordContributor) { completeKeywords(positionContext) }
-            when (positionContext) {
-                is FirNameReferenceRawPositionContext -> {
-                    val visibilityChecker = CompletionVisibilityChecker {
-                        parameters.invocationCount > 1 || isVisible(
-                            it,
-                            basicContext.originalKtFile.getFileSymbol(),
-                            positionContext.explicitReceiver,
-                            positionContext.position
-                        )
-                    }
+            complete(basicContext, positionContext, indexHelper)
+        }
+    }
 
-                    with(FirCallableCompletionContributor(basicContext, indexHelper)) {
-                        complete(positionContext, visibilityChecker)
-                    }
+    private fun KtAnalysisSession.complete(
+        basicContext: FirBasicCompletionContext,
+        positionContext: FirRawPositionCompletionContext,
+        indexHelper: IndexHelper,
+    ) {
+        val keywordContributor = FirKeywordCompletionContributor(basicContext)
+        val callableContributor = FirCallableCompletionContributor(basicContext, indexHelper)
+        val classifierContributor = FirClassifierCompletionContributor(basicContext, indexHelper)
 
-                    if (positionContext.explicitReceiver == null) {
-                        with(FirClassifierCompletionContributor(basicContext, indexHelper)) {
-                            collectTypesCompletion(
-                                basicContext.originalKtFile.getScopeContextForPosition(positionContext.nameExpression).scopes,
-                                visibilityChecker
-                            )
-                        }
-                    }
-
-                }
-                is FirUnknownRawPositionContext -> {
-                }
+        when (positionContext) {
+            is FirExpressionNameReferenceRawPositionContext -> {
+                complete(keywordContributor, positionContext)
+                complete(callableContributor, positionContext)
+                complete(classifierContributor, positionContext)
+            }
+            is FirTypeNameReferenceRawPositionContext -> {
+                complete(keywordContributor, positionContext)
+                complete(classifierContributor, positionContext)
+            }
+            is FirUnknownRawPositionContext -> {
+                complete(keywordContributor, positionContext)
             }
         }
     }

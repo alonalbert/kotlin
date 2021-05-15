@@ -14,18 +14,33 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLabelReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 
 internal sealed class FirRawPositionCompletionContext {
     abstract val position: PsiElement
 }
 
-internal class FirNameReferenceRawPositionContext(
+internal sealed class FirNameReferenceRawPositionContext : FirRawPositionCompletionContext() {
+    abstract val reference: KtSimpleNameReference
+    abstract val nameExpression: KtSimpleNameExpression
+    abstract val explicitReceiver: KtExpression?
+}
+
+internal class FirTypeNameReferenceRawPositionContext(
     override val position: PsiElement,
-    val reference: KtSimpleNameReference,
-    val nameExpression: KtSimpleNameExpression,
-    val explicitReceiver: KtExpression?
-) : FirRawPositionCompletionContext()
+    override val reference: KtSimpleNameReference,
+    override val nameExpression: KtSimpleNameExpression,
+    override val explicitReceiver: KtExpression?
+) : FirNameReferenceRawPositionContext()
+
+internal class FirExpressionNameReferenceRawPositionContext(
+    override val position: PsiElement,
+    override val reference: KtSimpleNameReference,
+    override val nameExpression: KtSimpleNameExpression,
+    override val explicitReceiver: KtExpression?
+) : FirNameReferenceRawPositionContext()
+
 
 internal class FirUnknownRawPositionContext(
     override val position: PsiElement
@@ -39,7 +54,12 @@ internal object FirPositionCompletionContextDetector {
         val nameExpression = reference.expression.takeIf { it !is KtLabelReferenceExpression }
             ?: return FirUnknownRawPositionContext(position)
         val explicitReceiver = nameExpression.getReceiverExpression()
-        return FirNameReferenceRawPositionContext(position, reference, nameExpression, explicitReceiver)
+
+        return if (nameExpression.parent is KtUserType) {
+            FirTypeNameReferenceRawPositionContext(position, reference, nameExpression, explicitReceiver)
+        } else {
+            FirExpressionNameReferenceRawPositionContext(position, reference, nameExpression, explicitReceiver)
+        }
     }
 
     inline fun analyseInContext(
