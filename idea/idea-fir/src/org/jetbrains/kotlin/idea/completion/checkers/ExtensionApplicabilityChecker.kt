@@ -5,14 +5,9 @@
 
 package org.jetbrains.kotlin.idea.completion.checkers
 
-import org.jetbrains.kotlin.idea.completion.context.FirBasicCompletionContext
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
 
 internal fun interface ExtensionApplicabilityChecker {
     fun KtAnalysisSession.isApplicable(symbol: KtCallableSymbol): Boolean
-
-    companion object {
-        fun create(basicContext: FirBasicCompletionContext, positionCOn)
-    }
 }
