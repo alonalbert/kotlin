@@ -11,27 +11,17 @@ import com.intellij.patterns.PsiJavaPatterns
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.completion.checkers.CompletionVisibilityChecker
-import org.jetbrains.kotlin.idea.completion.checkers.ExtensionApplicabilityChecker
 import org.jetbrains.kotlin.idea.completion.context.FirBasicCompletionContext
-import org.jetbrains.kotlin.idea.completion.context.FirNameReferencePositionContext
+import org.jetbrains.kotlin.idea.completion.context.FirNameReferenceRawPositionContext
 import org.jetbrains.kotlin.idea.completion.context.FirPositionCompletionContextDetector
-import org.jetbrains.kotlin.idea.completion.context.FirUnknownPositionContext
+import org.jetbrains.kotlin.idea.completion.context.FirUnknownRawPositionContext
 import org.jetbrains.kotlin.idea.completion.contributors.FirCallableCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirClassifierCompletionContributor
-import org.jetbrains.kotlin.idea.completion.contributors.FirContextCompletionContributorBase
 import org.jetbrains.kotlin.idea.completion.contributors.FirKeywordCompletionContributor
 import org.jetbrains.kotlin.idea.completion.weighers.Weighers
 import org.jetbrains.kotlin.idea.fir.low.level.api.IndexHelper
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.originalKtFile
-import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
-import org.jetbrains.kotlin.idea.frontend.api.components.KtScopeContext
-import org.jetbrains.kotlin.idea.frontend.api.scopes.KtCompositeScope
-import org.jetbrains.kotlin.idea.frontend.api.scopes.KtScope
-import org.jetbrains.kotlin.idea.frontend.api.symbols.*
-import org.jetbrains.kotlin.idea.frontend.api.types.KtClassType
-import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.*
 
 class KotlinFirCompletionContributor : CompletionContributor() {
     init {
@@ -58,7 +48,7 @@ private object KotlinFirCompletionProvider : CompletionProvider<CompletionParame
         FirPositionCompletionContextDetector.analyseInContext(basicContext, positionContext) {
             with(keywordContributor) { completeKeywords(positionContext) }
             when (positionContext) {
-                is FirNameReferencePositionContext -> {
+                is FirNameReferenceRawPositionContext -> {
                     val visibilityChecker = CompletionVisibilityChecker {
                         parameters.invocationCount > 1 || isVisible(
                             it,
@@ -82,7 +72,7 @@ private object KotlinFirCompletionProvider : CompletionProvider<CompletionParame
                     }
 
                 }
-                is FirUnknownPositionContext -> {
+                is FirUnknownRawPositionContext -> {
                 }
             }
         }

@@ -16,44 +16,44 @@ import org.jetbrains.kotlin.psi.KtLabelReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 
-internal sealed class FirPositionCompletionContext {
+internal sealed class FirRawPositionCompletionContext {
     abstract val position: PsiElement
 }
 
-internal class FirNameReferencePositionContext(
+internal class FirNameReferenceRawPositionContext(
     override val position: PsiElement,
     val reference: KtSimpleNameReference,
     val nameExpression: KtSimpleNameExpression,
     val explicitReceiver: KtExpression?
-) : FirPositionCompletionContext()
+) : FirRawPositionCompletionContext()
 
-internal class FirUnknownPositionContext(
+internal class FirUnknownRawPositionContext(
     override val position: PsiElement
-) : FirPositionCompletionContext()
+) : FirRawPositionCompletionContext()
 
 internal object FirPositionCompletionContextDetector {
-    fun detect(basicContext: FirBasicCompletionContext): FirPositionCompletionContext {
+    fun detect(basicContext: FirBasicCompletionContext): FirRawPositionCompletionContext {
         val position = basicContext.parameters.position
         val reference = (position.parent as? KtSimpleNameExpression)?.mainReference
-            ?: return FirUnknownPositionContext(position)
+            ?: return FirUnknownRawPositionContext(position)
         val nameExpression = reference.expression.takeIf { it !is KtLabelReferenceExpression }
-            ?: return FirUnknownPositionContext(position)
+            ?: return FirUnknownRawPositionContext(position)
         val explicitReceiver = nameExpression.getReceiverExpression()
-        return FirNameReferencePositionContext(position, reference, nameExpression, explicitReceiver)
+        return FirNameReferenceRawPositionContext(position, reference, nameExpression, explicitReceiver)
     }
 
     inline fun analyseInContext(
         basicContext: FirBasicCompletionContext,
-        positionContext: FirPositionCompletionContext,
+        positionContext: FirRawPositionCompletionContext,
         action: KtAnalysisSession.() -> Unit
     ) {
         return when (positionContext) {
-            is FirNameReferencePositionContext -> analyseInDependedAnalysisSession(
+            is FirNameReferenceRawPositionContext -> analyseInDependedAnalysisSession(
                 basicContext.originalKtFile,
                 positionContext.nameExpression,
                 action
             )
-            is FirUnknownPositionContext -> {
+            is FirUnknownRawPositionContext -> {
                 analyse(basicContext.originalKtFile, action)
             }
         }

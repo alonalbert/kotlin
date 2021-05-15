@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.idea.completion.contributors
 import org.jetbrains.kotlin.idea.completion.checkers.CompletionVisibilityChecker
 import org.jetbrains.kotlin.idea.completion.checkers.ExtensionApplicabilityChecker
 import org.jetbrains.kotlin.idea.completion.context.FirBasicCompletionContext
-import org.jetbrains.kotlin.idea.completion.context.FirNameReferencePositionContext
+import org.jetbrains.kotlin.idea.completion.context.FirNameReferenceRawPositionContext
 import org.jetbrains.kotlin.idea.fir.low.level.api.IndexHelper
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.components.KtScopeContext
@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.idea.frontend.api.types.KtClassType
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtUserType
 
 internal class FirCallableCompletionContributor(
     basicContext: FirBasicCompletionContext,
@@ -30,7 +29,7 @@ internal class FirCallableCompletionContributor(
     private val shouldCompleteTopLevelCallablesFromIndex: Boolean
         get() = prefixMatcher.prefix.isNotEmpty()
 
-    fun KtAnalysisSession.complete(positionContext: FirNameReferencePositionContext, visibilityChecker: CompletionVisibilityChecker) =
+    fun KtAnalysisSession.complete(positionContext: FirNameReferenceRawPositionContext, visibilityChecker: CompletionVisibilityChecker) =
         with(positionContext) {
             val expectedType = nameExpression.getExpectedType()
             val scopesContext = originalKtFile.getScopeContextForPosition(nameExpression)
