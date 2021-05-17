@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.idea.completion.context.FirExpressionNameReferenceRa
 import org.jetbrains.kotlin.idea.completion.context.FirPositionCompletionContextDetector
 import org.jetbrains.kotlin.idea.completion.context.FirTypeNameReferenceRawPositionContext
 import org.jetbrains.kotlin.idea.completion.context.FirUnknownRawPositionContext
+import org.jetbrains.kotlin.idea.completion.contributors.*
+import org.jetbrains.kotlin.idea.completion.contributors.FirAnnotationCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirCallableCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirClassifierCompletionContributor
 import org.jetbrains.kotlin.idea.completion.contributors.FirKeywordCompletionContributor
@@ -57,6 +59,7 @@ private object KotlinFirCompletionProvider : CompletionProvider<CompletionParame
         val keywordContributor = FirKeywordCompletionContributor(basicContext)
         val callableContributor = FirCallableCompletionContributor(basicContext)
         val classifierContributor = FirClassifierCompletionContributor(basicContext)
+        val annotationsContributor = FirAnnotationCompletionContributor(basicContext)
 
         when (positionContext) {
             is FirExpressionNameReferenceRawPositionContext -> {
@@ -68,6 +71,12 @@ private object KotlinFirCompletionProvider : CompletionProvider<CompletionParame
                 complete(keywordContributor, positionContext)
                 complete(classifierContributor, positionContext)
             }
+
+            is FirAnnotationTypeNameReferenceRawPositionContext -> {
+                complete(keywordContributor, positionContext)
+                complete(annotationsContributor, positionContext)
+            }
+
             is FirUnknownRawPositionContext -> {
                 complete(keywordContributor, positionContext)
             }
