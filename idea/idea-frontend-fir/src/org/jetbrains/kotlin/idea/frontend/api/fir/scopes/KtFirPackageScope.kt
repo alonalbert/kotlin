@@ -48,18 +48,18 @@ internal class KtFirPackageScope(
 
     override fun getPossibleCallableNames() = withValidityAssertion {
         hashSetOf<Name>().apply {
-            KotlinTopLevelPropertyByPackageIndex.getInstance()[fqName.asString(), project, firScope.session.searchScope]
+            KotlinTopLevelPropertyByPackageIndex.getInstance()[fqName.asString(), project, searchScope]
                 .mapNotNullTo(this) { it.nameAsName }
-            KotlinTopLevelFunctionByPackageIndex.getInstance()[fqName.asString(), project, firScope.session.searchScope]
+            KotlinTopLevelFunctionByPackageIndex.getInstance()[fqName.asString(), project,searchScope]
                 .mapNotNullTo(this) { it.nameAsName }
         }
     }
 
     override fun getPossibleClassifierNames(): Set<Name> = withValidityAssertion {
-        KotlinTopLevelClassByPackageIndex.getInstance()[fqName.asString(), project, firScope.session.searchScope]
+        KotlinTopLevelClassByPackageIndex.getInstance()[fqName.asString(), project, searchScope]
             .mapNotNullTo(hashSetOf()) { it.nameAsName }
 
-        KotlinTopLevelTypeAliasByPackageIndex.getInstance()[fqName.asString(), project, firScope.session.searchScope]
+        KotlinTopLevelTypeAliasByPackageIndex.getInstance()[fqName.asString(), project, searchScope]
             .mapNotNullTo(hashSetOf()) { it.nameAsName }
     }
 
