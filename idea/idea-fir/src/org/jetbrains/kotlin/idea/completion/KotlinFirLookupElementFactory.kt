@@ -402,7 +402,7 @@ private object ShortNamesRenderer {
         function.valueParameters.joinToString(", ", "(", ")") { renderFunctionParameter(it) }
 
     private fun KtAnalysisSession.renderFunctionParameter(param: KtValueParameterSymbol): String =
-        "${if (param.isVararg) "vararg " else ""}${param.name.asString()}: ${param.annotatedType.type.render()}"
+        "${if (param.isVararg) "vararg " else ""}${param.name.asString()}: ${param.annotatedType.type.render(WITH_TYPE_RENDERING_OPTIONS)}"
 }
 
 
