@@ -107,7 +107,10 @@ open class CocoapodsExtension(private val project: Project) {
      * Configure custom Xcode Configurations to Native Build Types mapping
      */
     @Input
-    var xcodeConfigurationToNativeBuildType: MutableMap<String, NativeBuildType> = mutableMapOf()
+    val xcodeConfigurationToNativeBuildType: MutableMap<String, NativeBuildType> = mutableMapOf(
+        "Debug" to NativeBuildType.DEBUG,
+        "Release" to NativeBuildType.RELEASE
+    )
 
     @get:Nested
     internal val specRepos = SpecRepos()

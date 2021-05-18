@@ -192,19 +192,12 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         val requestedTargetName = project.findProperty(TARGET_PROPERTY)?.toString() ?: return@whenEvaluated
         val xcodeConfiguration = project.findProperty(CONFIGURATION_PROPERTY)?.toString() ?: return@whenEvaluated
 
-        val requestedBuildType = cocoapodsExtension.xcodeConfigurationToNativeBuildType.getOrDefault(
-            xcodeConfiguration,
-            try {
-                NativeBuildType.valueOf(xcodeConfiguration.toUpperCase())
-            } catch (e: IllegalArgumentException) {
-                null
-            }
-        )
+        val requestedBuildType = cocoapodsExtension.xcodeConfigurationToNativeBuildType[xcodeConfiguration]
 
         check(requestedBuildType != null) {
             """
             Could not identify build type for Kotlin framework '${cocoapodsExtension.frameworkName}' built via cocoapods plugin with CONFIGURATION=$xcodeConfiguration.
-            Add xcodeConfigurationToNativeBuildType[$xcodeConfiguration]=DEBUG or xcodeConfigurationToNativeBuildType[$xcodeConfiguration]=RELEASE to cocoapods plugin configuration
+            Add xcodeConfigurationToNativeBuildType[$xcodeConfiguration]=NativeBuildType.DEBUG or xcodeConfigurationToNativeBuildType[$xcodeConfiguration]=NativeBuildType.RELEASE to cocoapods plugin configuration
         """.trimIndent()
         }
 
