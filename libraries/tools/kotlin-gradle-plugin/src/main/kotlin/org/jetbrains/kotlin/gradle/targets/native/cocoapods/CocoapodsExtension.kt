@@ -13,6 +13,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.*
 import org.gradle.util.ConfigureUtil
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.CocoapodsDependency.PodLocation.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.io.File
 import java.net.URI
 
@@ -101,6 +102,12 @@ open class CocoapodsExtension(private val project: Project) {
      */
     @Input
     var frameworkName: String = project.name.asValidFrameworkName()
+
+    /**
+     * Configure custom Xcode Configurations to Native Build Types mapping
+     */
+    @Input
+    var xcodeConfigurationToNativeBuildType: MutableMap<String, NativeBuildType> = mutableMapOf()
 
     @get:Nested
     internal val specRepos = SpecRepos()
