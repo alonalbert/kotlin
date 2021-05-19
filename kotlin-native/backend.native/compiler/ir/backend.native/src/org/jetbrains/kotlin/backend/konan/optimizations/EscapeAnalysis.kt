@@ -1379,27 +1379,24 @@ internal object EscapeAnalysis {
                                     connectedNodes.add(Pair(secondNode, firstNode))
                                 }
                         }
-                allNodes.filter { nodeIds[it] == null && it.drain in interestingDrains && nodeIds[it.drain] == null }
-                        .forEach { node ->
-                            val referencingNodes = findReferencing(node).filter { nodeIds[it] != null }
-                            for (i in referencingNodes.indices)
+
+                interestingDrains
+                        .filter { nodeIds[it] == null } // Was optimized away.
+                        .forEach { drain ->
+                            val referencingNodes = findReferencing(drain).filter { nodeIds[it] != null }
+                            var needDrain = false
+                            outerLoop@ for (i in referencingNodes.indices)
                                 for (j in i + 1 until referencingNodes.size) {
                                     val firstNode = referencingNodes[i]
                                     val secondNode = referencingNodes[j]
                                     val pair = Pair(firstNode, secondNode)
-                                    if (pair in connectedNodes) continue
-
-                                    // It is not an actual drain, but a temporary node to reflect the found constraint.
-                                    val additionalDrain = newDrain()
-                                    // For consistency.
-                                    additionalDrain.depth = min(firstNode.depth, secondNode.depth)
-
-                                    firstNode.addAssignmentEdge(additionalDrain)
-                                    secondNode.addAssignmentEdge(additionalDrain)
-                                    nodeIds[additionalDrain] = drainFactory()
-                                    connectedNodes.add(pair)
-                                    connectedNodes.add(Pair(secondNode, firstNode))
+                                    if (pair !in connectedNodes) {
+                                        needDrain = true
+                                        break@outerLoop
+                                    }
                                 }
+                            if (needDrain)
+                                nodeIds[drain] = drainFactory()
                         }
             }
 
