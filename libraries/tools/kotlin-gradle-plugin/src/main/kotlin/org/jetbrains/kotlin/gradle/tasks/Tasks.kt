@@ -238,16 +238,19 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> : AbstractKotl
 
     private val kotlinLogger by lazy { GradleKotlinLogger(logger) }
 
-    final override val kotlinJavaToolchainProvider: Provider<KotlinJavaToolchainProvider> =
-        objects.propertyWithNewInstance()
+    final override val kotlinJavaToolchainProvider: Provider<KotlinJavaToolchainProvider> = objects
+        .propertyWithNewInstance(
+            project.gradle,
+            project.extensions
+        )
 
     @get:Internal
     internal val compilerRunner: Provider<GradleCompilerRunner> =
         objects.propertyWithConvention(
             kotlinJavaToolchainProvider.map {
                 compilerRunner(
-                    it.javaExecutable.get().asFile,
-                    it.jdkToolsJar.orNull
+                    it.jdkProvider.javaExecutable.get().asFile,
+                    it.jdkProvider.jdkToolsJar.orNull
                 )
             }
         )
