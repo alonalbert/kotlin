@@ -24,8 +24,13 @@ bool isRunnableOrNative(kotlin::mm::ThreadData& thread) {
 
 template<typename F>
 bool allThreads(F predicate) {
-    kotlin::mm::ThreadRegistry::Iterable threads = kotlin::mm::ThreadRegistry::Instance().Iter();
+    auto& threadRegistry = kotlin::mm::ThreadRegistry::Instance();
+    auto* currentThread = threadRegistry.CurrentThreadData();
+    kotlin::mm::ThreadRegistry::Iterable threads = threadRegistry.Iter();
     for (auto& thread : threads) {
+        // Handle if suspension was initiated by the mutator thread.
+        if (&thread == currentThread)
+            continue;
         if (!predicate(thread)) {
             return false;
         }
@@ -38,20 +43,23 @@ void yield() {
 }
 
 std::atomic<bool> gSuspensionRequested = false;
+THREAD_LOCAL_VARIABLE bool gSuspensionRequestedByCurrentThread = false;
 std::mutex gSuspensionMutex;
 std::condition_variable gSuspendsionCondVar;
 
 } // namespace
 
-void kotlin::mm::ThreadSuspensionData::suspendIfRequested() noexcept {
+bool kotlin::mm::ThreadSuspensionData::suspendIfRequested() noexcept {
     if (IsThreadSuspensionRequested()) {
         std::unique_lock lock(gSuspensionMutex);
         if (IsThreadSuspensionRequested()) {
             suspended_ = true;
             gSuspendsionCondVar.wait(lock, []() { return !IsThreadSuspensionRequested(); });
             suspended_ = false;
+            return true;
         }
     }
+    return false;
 }
 
 bool kotlin::mm::IsThreadSuspensionRequested() {
@@ -59,13 +67,22 @@ bool kotlin::mm::IsThreadSuspensionRequested() {
     return gSuspensionRequested.load();
 }
 
-void kotlin::mm::SuspendThreads() {
-    gSuspensionRequested = true;
+bool kotlin::mm::SuspendThreads() {
+    RuntimeAssert(gSuspensionRequestedByCurrentThread == false, "Current thread already suspended threads:");
+
+    bool actual = false;
+    gSuspensionRequested.compare_exchange_strong(actual, true);
+    if (actual == true) {
+        return false;
+    }
+    gSuspensionRequestedByCurrentThread = true;
 
     // Spin wating for threads to suspend. Ignore Native threads.
     while(!allThreads(isSuspendedOrNative)) {
         yield();
     }
+
+    return true;
 }
 
 void kotlin::mm::ResumeThreads() {
@@ -77,6 +94,7 @@ void kotlin::mm::ResumeThreads() {
         std::unique_lock lock(gSuspensionMutex);
         gSuspensionRequested = false;
     }
+    gSuspensionRequestedByCurrentThread = false;
     gSuspendsionCondVar.notify_all();
 
     // Wait for threads to run. Ignore Native threads.
