@@ -996,6 +996,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
             }
 
             @Test
+            @TestMetadata("AnnotationForClassTypeParameterSupported.kt")
+            public void testAnnotationForClassTypeParameterSupported() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/annotations/AnnotationForClassTypeParameterSupported.kt");
+            }
+
+            @Test
             @TestMetadata("AnnotationForFunctionTypeParameter.kt")
             public void testAnnotationForFunctionTypeParameter() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/annotations/AnnotationForFunctionTypeParameter.kt");
