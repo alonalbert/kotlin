@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -13,7 +14,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.jvm.toolchain.JavaLauncher
 import java.io.File
 
-interface UsesKotlinJavaToolchain {
+interface UsesKotlinJavaToolchain : Task {
     @get:Nested
     val kotlinJavaToolchainProvider: Provider<out KotlinJavaToolchain>
 
