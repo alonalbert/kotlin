@@ -98,3 +98,16 @@ internal fun String.hexToInt(): Int {
 internal fun List<String>.hexCharsToStringLiteral(): String {
     return "\"${joinToString(separator = "") { "\\u$it" }}\""
 }
+
+internal fun IntRange.rangeCheck(ch: String, indent: String): String = when (first) {
+    last -> {
+        "$ch == ${first.toHexIntLiteral()}"
+    }
+    last - 1 -> {
+        "$ch == ${first.toHexIntLiteral()}\n" +
+                "$indent|| $ch == ${last.toHexIntLiteral()}"
+    }
+    else -> {
+        "$ch in ${first.toHexIntLiteral()}..${last.toHexIntLiteral()}"
+    }
+}
